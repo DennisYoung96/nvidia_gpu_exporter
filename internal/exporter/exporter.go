@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -47,6 +48,7 @@ var (
 		{qField: driverModelPendingQField, label: "driver_model_pending"},
 		{qField: vBiosVersionQField, label: "vbios_version"},
 		{qField: driverVersionQField, label: "driver_version"},
+		{qField: nodeName, label: "nodeName"},
 	}
 
 	//nolint:gochecknoglobals
@@ -195,10 +197,11 @@ func (e *GPUExporter) Collect(metricCh chan<- prometheus.Metric) {
 		driverModelPending := currentRow.QFieldToCells[driverModelPendingQField].RawValue
 		vBiosVersion := currentRow.QFieldToCells[vBiosVersionQField].RawValue
 		driverVersion := currentRow.QFieldToCells[driverVersionQField].RawValue
+		nodeName := os.Getenv("MY_NODE_NAME")
 
 		infoMetric := prometheus.MustNewConstMetric(e.gpuInfoDesc, prometheus.GaugeValue,
 			1, uuid, name, driverModelCurrent,
-			driverModelPending, vBiosVersion, driverVersion)
+			driverModelPending, vBiosVersion, driverVersion, nodeName)
 		metricCh <- infoMetric
 
 		for _, currentCell := range currentRow.Cells {
@@ -212,7 +215,7 @@ func (e *GPUExporter) Collect(metricCh chan<- prometheus.Metric) {
 				continue
 			}
 
-			metricCh <- prometheus.MustNewConstMetric(metricInfo.desc, metricInfo.MType, num, uuid)
+			metricCh <- prometheus.MustNewConstMetric(metricInfo.desc, metricInfo.MType, num, uuid, nodeName)
 		}
 	}
 }
@@ -316,7 +319,7 @@ func BuildQFieldToMetricInfoMap(prefix string, qFieldtoRFieldMap map[QField]RFie
 
 func BuildMetricInfo(prefix string, rField RField) MetricInfo {
 	fqName, multiplier := BuildFQNameAndMultiplier(prefix, rField)
-	desc := prometheus.NewDesc(fqName, string(rField), []string{"uuid"}, nil)
+	desc := prometheus.NewDesc(fqName, string(rField), []string{"uuid", "nodeName"}, nil)
 
 	return MetricInfo{
 		desc:            desc,

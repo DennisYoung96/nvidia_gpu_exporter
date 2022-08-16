@@ -16,6 +16,7 @@ const (
 	driverModelPendingQField QField = "driver_model.pending"
 	vBiosVersionQField       QField = "vbios_version"
 	driverVersionQField      QField = "driver_version"
+	nodeName                 QField = "nodeName"
 	qFieldsAuto                     = "AUTO"
 	DefaultQField                   = qFieldsAuto
 )
@@ -27,6 +28,7 @@ var (
 
 	//nolint:gochecknoglobals
 	fallbackQFieldToRFieldMap = map[QField]RField{
+		"nodeName":                          "nodeName",
 		"timestamp":                         "timestamp",
 		"driver_version":                    "driver_version",
 		"count":                             "count",
